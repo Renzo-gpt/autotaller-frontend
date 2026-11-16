@@ -1,0 +1,520 @@
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-box"><i class="bi bi-car-front-fill"></i></div>
+      <div>
+        <h1>AutoTaller Pro</h1>
+        <span>Panel Administrativo</span>
+      </div>
+    </div>
+
+    <nav class="nav-menu">
+      <a [class.active]="activeMenu === 'dashboard'" (click)="setMenu('dashboard')">
+        <i class="bi bi-speedometer2"></i> Dashboard
+      </a>
+      <a [class.active]="activeMenu === 'clientes'" (click)="setMenu('clientes')">
+        <i class="bi bi-people"></i> Clientes
+      </a>
+      <a [class.active]="activeMenu === 'vehiculos'" (click)="setMenu('vehiculos')">
+        <i class="bi bi-car-front"></i> Vehículos
+      </a>
+      <a [class.active]="activeMenu === 'citas'" (click)="setMenu('citas')">
+        <i class="bi bi-calendar-check"></i> Citas
+      </a>
+      <a [class.active]="activeMenu === 'ordenes'" (click)="setMenu('ordenes')">
+        <i class="bi bi-clipboard-check"></i> Órdenes de trabajo
+      </a>
+      <a [class.active]="activeMenu === 'inventario'" (click)="setMenu('inventario')">
+        <i class="bi bi-box-seam"></i> Inventario
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a (click)="logout()" class="logout-btn">
+        <i class="bi bi-box-arrow-left"></i> Cerrar sesión
+      </a>
+    </div>
+  </aside>
+
+
+  <main class="main-content">
+
+    <header class="topbar">
+      <div>
+        <h2>{{ activeMenu | titlecase }}</h2>
+        <p class="subtitle">Panel de control y operaciones del taller</p>
+      </div>
+
+      <div class="topbar-actions">
+
+        <div class="search-box">
+          <i class="bi bi-search"></i>
+          <input type="text" [(ngModel)]="searchQuery" placeholder="Buscar cliente, vehículo..." />
+        </div>
+
+        <button class="icon-btn"><i class="bi bi-bell"></i><span class="dot"></span></button>
+
+
+        <div class="user-profile" (click)="abrirPerfil()" title="Configuración de cuenta">
+          <div class="avatar" *ngIf="!datosPerfil.foto">{{ username.substring(0, 2).toUpperCase() }}</div>
+          <img *ngIf="datosPerfil.foto" [src]="datosPerfil.foto" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #e2e8f0;">
+          <div>
+            <strong>{{ username }}</strong>
+            <span>Administrador</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- DASHBOARD -->
+    <ng-container *ngIf="activeMenu === 'dashboard'">
+      <!-- 5 TARJETAS KPI -->
+      <section class="kpi-grid">
+        <div class="kpi-card border-blue">
+          <div class="kpi-top">
+            <span class="kpi-icon bg-blue"><i class="bi bi-car-front"></i></span>
+            <span class="trend up">↑ 12%</span>
+          </div>
+          <p class="kpi-label">Vehículos ingresados</p>
+          <h3 class="kpi-value">{{ vehiculos.length }}</h3>
+        </div>
+
+        <div class="kpi-card border-amber">
+          <div class="kpi-top">
+            <span class="kpi-icon bg-amber"><i class="bi bi-wrench"></i></span>
+            <span class="trend up">↑ 8%</span>
+          </div>
+          <p class="kpi-label">Reparaciones activas</p>
+          <h3 class="kpi-value">{{ ordenesActivasCount }}</h3>
+        </div>
+
+        <div class="kpi-card border-emerald">
+          <div class="kpi-top">
+            <span class="kpi-icon bg-emerald"><i class="bi bi-check-circle"></i></span>
+            <span class="trend up">↑ 5%</span>
+          </div>
+          <p class="kpi-label">Listos para entregar</p>
+          <h3 class="kpi-value">{{ ordenesListasCount }}</h3>
+        </div>
+
+        <div class="kpi-card border-sky">
+          <div class="kpi-top">
+            <span class="kpi-icon bg-sky"><i class="bi bi-calendar-event"></i></span>
+            <span class="trend up">↑ 15%</span>
+          </div>
+          <p class="kpi-label">Citas registradas</p>
+          <h3 class="kpi-value">{{ citas.length }}</h3>
+        </div>
+
+        <div class="kpi-card border-rose">
+          <div class="kpi-top">
+            <span class="kpi-icon bg-rose"><i class="bi bi-currency-dollar"></i></span>
+            <span class="trend up">↑ 22%</span>
+          </div>
+          <p class="kpi-label">Ingresos acumulados</p>
+          <h3 class="kpi-value">${{ ingresosTotales | number:'1.2-2' }}</h3>
+        </div>
+      </section>
+
+      <section class="bottom-grid">
+        <div class="panel">
+          <div class="panel-header">
+            <h4><i class="bi bi-clipboard-data text-blue"></i> Órdenes recientes</h4>
+            <button class="btn-small" (click)="setMenu('ordenes')">Ver todas</button>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ORDEN</th>
+                <th>DESCRIPCIÓN / VEHÍCULO</th>
+                <th>ESTADO</th>
+                <th>MONTO</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let orden of ordenesFiltradas">
+                <td><strong>#OT-{{ orden.id }}</strong></td>
+                <td>
+                  <div class="cell-main">{{ orden.descripcionTrabajo || orden.descripcion_trabajo || orden.diagnostico || 'Mantenimiento general' }}</div>
+                  <div class="cell-sub">{{ orden.vehiculo?.placa || 'Vehículo #' + orden.vehiculoId }}</div>
+                </td>
+                <td>
+                  <span class="badge" [ngClass]="(orden.estado === 'FINALIZADO' || orden.estado === 'FINALIZADA') ? 'badge-green' : 'badge-amber'">
+                    {{ orden.estado }}
+                  </span>
+                </td>
+                <td><strong>${{ (orden.costoTotal ?? orden.costo_total ?? orden.total ?? 0) | number:'1.2-2' }}</strong></td>
+              </tr>
+              <tr *ngIf="ordenesFiltradas.length === 0">
+                <td colspan="4" class="empty-msg">No se encontraron órdenes.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h4><i class="bi bi-exclamation-triangle-fill text-amber"></i> Alertas de inventario</h4>
+          </div>
+
+          <div class="alerts-list">
+            <div *ngFor="let item of alertasInventario" class="alert-item" [ngClass]="item.stock === 0 ? 'alert-danger' : 'alert-warning'">
+              <div class="alert-icon">
+                <i class="bi" [ngClass]="item.stock === 0 ? 'bi-x-circle-fill' : 'bi-exclamation-circle-fill'"></i>
+              </div>
+              <div>
+                <strong>{{ item.nombre }}</strong>
+                <p>Stock: {{ item.stock }} unidades · {{ item.stock === 0 ? 'Agotado' : 'Stock bajo' }}</p>
+              </div>
+            </div>
+            <div *ngIf="alertasInventario.length === 0" class="ok-box">
+              <i class="bi bi-check-circle-fill"></i> Todo el inventario tiene stock saludable o no hay resultados.
+            </div>
+          </div>
+        </div>
+      </section>
+    </ng-container>
+
+    <!-- CLIENTES -->
+    <section *ngIf="activeMenu === 'clientes'" class="panel">
+      <div class="panel-header">
+        <h4><i class="bi bi-people text-blue"></i> Lista de Clientes</h4>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>NOMBRE</th>
+            <th>TELÉFONO</th>
+            <th>EMAIL / DOCUMENTO</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of clientesFiltrados">
+            <td><strong>#{{ c.id }}</strong></td>
+            <td>{{ c.nombre }} {{ c.apellido || '' }}</td>
+            <td>{{ c.telefono || 'Sin teléfono' }}</td>
+            <td>{{ c.email || c.correo || c.dni || '-' }}</td>
+          </tr>
+          <tr *ngIf="clientesFiltrados.length === 0">
+            <td colspan="4">No se encontraron clientes.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- VEHÍCULOS -->
+    <section *ngIf="activeMenu === 'vehiculos'" class="panel">
+      <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h4><i class="bi bi-car-front text-blue"></i> Lista de Vehículos</h4>
+        <button class="btn-cyan" (click)="abrirFormularioVehiculo()" style="padding: 10px 20px; border-radius: 8px; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; border: none; cursor: pointer; color: #fff;">
+          <i class="bi bi-car-front"></i> Registrar vehículo
+        </button>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>PLACA</th>
+            <th>MARCA Y MODELO</th>
+            <th>AÑO / COLOR</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let v of vehiculosFiltrados">
+            <td><strong>#{{ v.id }}</strong></td>
+            <td><span class="badge badge-green">{{ v.placa }}</span></td>
+            <td><strong>{{ v.marca }}</strong> {{ v.modelo }}</td>
+            <td>{{ v.anio || v['año'] || '-' }} {{ v.color ? '· ' + v.color : '' }}</td>
+          </tr>
+          <tr *ngIf="vehiculosFiltrados.length === 0">
+            <td colspan="4">No se encontraron vehículos.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- CITAS -->
+    <section *ngIf="activeMenu === 'citas'" class="panel">
+      <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h4><i class="bi bi-calendar-check text-blue"></i> Agenda de Citas</h4>
+        
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-cyan" (click)="actualizarEstadoCita()" style="padding: 10px 20px; border-radius: 8px; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; border: none; cursor: pointer; color: #fff;">
+            <i class="bi bi-arrow-repeat"></i> Actualizar estado
+          </button>
+          <button class="btn-outline" (click)="abrirFormularioCita()" style="padding: 10px 20px; border-radius: 8px; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <i class="bi bi-calendar-plus"></i> Programar cita
+          </button>
+        </div>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>FECHA / HORA</th>
+            <th>MOTIVO / SERVICIO</th>
+            <th>ESTADO</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let cita of citasFiltradas">
+            <td><strong>#{{ cita.id }}</strong></td>
+            <td>{{ cita.fechaHora || cita.fecha_hora || cita.fecha || 'Programada' }}</td>
+            <td>{{ cita.motivo || cita.descripcion || 'Revisión general' }}</td>
+            <td>
+              <span class="badge badge-amber">{{ cita.estado || 'PENDIENTE' }}</span>
+            </td>
+          </tr>
+          <tr *ngIf="citasFiltradas.length === 0">
+            <td colspan="4">No se encontraron citas.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ÓRDENES DE TRABAJO -->
+    <section *ngIf="activeMenu === 'ordenes'" class="panel">
+      <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h4><i class="bi bi-clipboard-check text-blue"></i> Órdenes de Trabajo</h4>
+        <button class="btn-primary" (click)="abrirFormularioOrden()" style="padding: 10px 20px; border-radius: 8px; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; border: none; cursor: pointer; color: #fff;">
+          <i class="bi bi-plus-circle"></i> Nueva orden
+        </button>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ORDEN</th>
+            <th>DESCRIPCIÓN</th>
+            <th>ESTADO</th>
+            <th>MONTO</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let o of ordenesFiltradas">
+            <td><strong>#OT-{{ o.id }}</strong></td>
+            <td>{{ o.descripcionTrabajo || o.descripcion_trabajo || o.diagnostico || 'Mantenimiento general' }}</td>
+            <td>
+              <span class="badge" [ngClass]="(o.estado === 'FINALIZADO' || o.estado === 'FINALIZADA') ? 'badge-green' : 'badge-amber'">
+                {{ o.estado }}
+              </span>
+            </td>
+            <td><strong>${{ (o.costoTotal ?? o.costo_total ?? o.total ?? 0) | number:'1.2-2' }}</strong></td>
+          </tr>
+          <tr *ngIf="ordenesFiltradas.length === 0">
+            <td colspan="4">No se encontraron órdenes.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- INVENTARIO -->
+    <section *ngIf="activeMenu === 'inventario'" class="panel">
+      <div class="panel-header">
+        <h4><i class="bi bi-box-seam text-blue"></i> Catálogo de Inventario</h4>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>REPUESTO</th>
+            <th>DESCRIPCIÓN</th>
+            <th>STOCK</th>
+            <th>PRECIO</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let prod of inventarioFiltrado">
+            <td><strong>#{{ prod.id }}</strong></td>
+            <td><strong>{{ prod.nombre }}</strong></td>
+            <td>{{ prod.descripcion }}</td>
+            <td>{{ prod.stock }} unid.</td>
+            <td><strong>${{ (prod.precio ?? prod.precioUnitario ?? 0) | number:'1.2-2' }}</strong></td>
+          </tr>
+          <tr *ngIf="inventarioFiltrado.length === 0">
+            <td colspan="5">No se encontró repuesto en el inventario.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <!-- ================= MODALES ================= -->
+  
+  <div class="modal-overlay" *ngIf="mostrarModalPerfil">
+    <div class="modal-content" style="width: 450px;">
+      
+      <ng-container *ngIf="!editandoPerfil">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+          <h3><i class="bi bi-person-badge text-blue"></i> Mi Perfil</h3>
+          <button class="btn-cyan" (click)="activarEdicionPerfil()" style="padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; border: none; color: white; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+            <i class="bi bi-pencil-square"></i> Actualizar datos
+          </button>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 20px;">
+          <div *ngIf="datosPerfil.foto" style="width: 110px; height: 110px; border-radius: 50%; overflow: hidden; margin: 0 auto 10px; border: 3px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <img [src]="datosPerfil.foto" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+          <div *ngIf="!datosPerfil.foto" style="width: 110px; height: 110px; border-radius: 50%; background: #2563eb; color: white; font-size: 3rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-weight: bold; border: 3px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            {{ datosPerfil.usuario.substring(0, 2).toUpperCase() }}
+          </div>
+          <h2 style="margin: 0; color: #1e293b;">{{ datosPerfil.usuario }}</h2>
+          <span style="color: #64748b; font-size: 14px;">Administrador del Sistema</span>
+        </div>
+
+        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+          <div style="margin-bottom: 15px;">
+            <strong style="color: #475569; display: block; font-size: 12px; margin-bottom: 3px;">CORREO ELECTRÓNICO</strong>
+            <span style="color: #0f172a; font-size: 14px;">{{ datosPerfil.correo }}</span>
+          </div>
+          <div>
+            <strong style="color: #475569; display: block; font-size: 12px; margin-bottom: 3px;">CONTRASEÑA</strong>
+            <span style="color: #0f172a; font-size: 14px;">********</span>
+          </div>
+        </div>
+
+        <div class="modal-actions" style="margin-top: 20px;">
+          <button class="btn-outline" (click)="cerrarPerfil()" style="padding: 8px 15px; border-radius: 6px; cursor: pointer; width: 100%;">Cerrar ventana</button>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="editandoPerfil">
+        <h3 style="margin-bottom: 20px;"><i class="bi bi-pencil-square text-blue"></i> Actualizar Perfil</h3>
+        
+        <div style="text-align: center; margin-bottom: 25px;">
+          <div *ngIf="datosPerfil.foto" style="width: 90px; height: 90px; border-radius: 50%; overflow: hidden; margin: 0 auto; border: 2px solid #e2e8f0;">
+            <img [src]="datosPerfil.foto" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+          <div *ngIf="!datosPerfil.foto" style="width: 90px; height: 90px; border-radius: 50%; background: #2563eb; color: white; font-size: 2.5rem; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-weight: bold; border: 2px solid #e2e8f0;">
+            {{ datosPerfil.usuario.substring(0, 2).toUpperCase() }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Nombres / Usuario</label>
+          <input type="text" [(ngModel)]="datosPerfil.usuario" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>Correo Electrónico</label>
+          <input type="email" [(ngModel)]="datosPerfil.correo" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>Nueva Contraseña</label>
+          <input type="password" [(ngModel)]="datosPerfil.password" class="form-control" placeholder="Dejar en blanco para no cambiar">
+        </div>
+
+        <div class="form-group" style="margin-top: 15px;">
+          <label style="color: #475569; font-size: 13px;">Cambiar Foto de Perfil</label>
+          <input type="file" (change)="cambiarFoto($event)" accept="image/*" class="form-control" style="font-size: 13px; padding: 6px; cursor: pointer; width: 100%;">
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-outline" (click)="cancelarEdicionPerfil()" style="padding: 8px 15px; border-radius: 6px; cursor: pointer;">Cancelar</button>
+          <button class="btn-cyan" (click)="guardarPerfil()" style="padding: 8px 15px; border-radius: 6px; cursor: pointer; color: white; border: none; font-weight: bold;">Guardar cambios</button>
+        </div>
+      </ng-container>
+
+    </div>
+  </div>
+
+  <!-- REGISTRAR VEHÍCULO -->
+  <div class="modal-overlay" *ngIf="mostrarModalVehiculo">
+    <div class="modal-content">
+      <h3><i class="bi bi-car-front text-blue"></i> Registrar Vehículo</h3>
+      
+      <div class="form-group">
+        <label>Placa</label>
+        <input type="text" [(ngModel)]="nuevoVehiculo.placa" class="form-control" placeholder="Ej: ABC-123">
+      </div>
+      <div class="form-group">
+        <label>Marca</label>
+        <input type="text" [(ngModel)]="nuevoVehiculo.marca" class="form-control" placeholder="Ej: Toyota">
+      </div>
+      <div class="form-group">
+        <label>Modelo</label>
+        <input type="text" [(ngModel)]="nuevoVehiculo.modelo" class="form-control" placeholder="Ej: Corolla">
+      </div>
+      <div class="form-group">
+        <label>Año</label>
+        <input type="number" [(ngModel)]="nuevoVehiculo.anio" class="form-control" placeholder="Ej: 2020">
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-outline" (click)="cerrarModalVehiculo()" style="padding: 8px 15px; border-radius: 6px; cursor: pointer;">Cancelar</button>
+        <button class="btn-cyan" (click)="guardarVehiculo()" style="padding: 8px 15px; border-radius: 6px; cursor: pointer; color: white; border: none; font-weight: bold;">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROGRAMAR CITA -->
+  <div class="modal-overlay" *ngIf="mostrarModalCita">
+    <div class="modal-content">
+      <h3><i class="bi bi-calendar-plus text-blue"></i> Programar Cita</h3>
+      
+      <div class="form-group">
+        <label>Fecha y Hora</label>
+        <input type="datetime-local" [(ngModel)]="nuevaCita.fechaHora" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>Motivo / Servicio</label>
+        <input type="text" [(ngModel)]="nuevaCita.motivo" class="form-control" placeholder="Ej: Revisión general">
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-outline" (click)="cerrarModalCita()" style="padding: 8px 15px; border-radius: 6px; cursor: pointer;">Cancelar</button>
+        <button class="btn-cyan" (click)="guardarCita()" style="padding: 8px 15px; border-radius: 6px; cursor: pointer; color: white; border: none; font-weight: bold;">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTUALIZAR ESTADO DE CITA -->
+  <div class="modal-overlay" *ngIf="mostrarModalEstadoCita">
+    <div class="modal-content">
+      <h3><i class="bi bi-arrow-repeat text-blue"></i> Actualizar Estado</h3>
+      
+      <div class="form-group">
+        <label>ID de la Cita</label>
+        <input type="number" min="1" [(ngModel)]="estadoCitaObj.id" class="form-control" placeholder="Ej: 1">
+      </div>
+      <div class="form-group">
+        <label>Nuevo Estado</label>
+        <select [(ngModel)]="estadoCitaObj.estado" class="form-control">
+          <option value="PENDIENTE">PENDIENTE</option>
+          <option value="EN_PROCESO">EN PROCESO</option>
+          <option value="FINALIZADA">FINALIZADA</option>
+          <option value="CANCELADA">CANCELADA</option>
+        </select>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-outline" (click)="cerrarModalEstadoCita()" style="padding: 8px 15px; border-radius: 6px; cursor: pointer;">Cancelar</button>
+        <button class="btn-cyan" (click)="guardarEstadoCita()" style="padding: 8px 15px; border-radius: 6px; cursor: pointer; color: white; border: none; font-weight: bold;">Actualizar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" *ngIf="mostrarModalOrden">
+    <div class="modal-content">
+      <h3><i class="bi bi-plus-circle text-blue"></i> Nueva Orden</h3>
+      
+      <div class="form-group">
+        <label>Descripción del Trabajo</label>
+        <input type="text" [(ngModel)]="nuevaOrden.descripcionTrabajo" class="form-control" placeholder="Ej: Cambio de aceite y filtros">
+      </div>
+      <div class="form-group">
+        <label>Costo Total ($)</label>
+        <input type="number" min="0" [(ngModel)]="nuevaOrden.costoTotal" class="form-control" placeholder="Ej: 120.50">
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-outline" (click)="cerrarModalOrden()" style="padding: 8px 15px; border-radius: 6px; cursor: pointer;">Cancelar</button>
+        <button class="btn-cyan" (click)="guardarOrden()" style="padding: 8px 15px; border-radius: 6px; cursor: pointer; color: white; border: none; font-weight: bold;">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
