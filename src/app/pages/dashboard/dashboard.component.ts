@@ -37,7 +37,7 @@ export class DashboardComponent implements OnInit {
     this.tallerService.getClientes().subscribe(data => this.clientes = data || []);
   }
 
-  // ================= FILTROS DEL BUSCADOR GLOBAL =================
+
   get clientesFiltrados() {
     if (!this.searchQuery) return this.clientes;
     const q = this.searchQuery.toLowerCase();
@@ -87,7 +87,7 @@ export class DashboardComponent implements OnInit {
     );
   }
 
-  // ================= KPIs y CÁLCULOS =================
+
   get alertasInventario(): any[] {
     return this.inventarioFiltrado.filter(item => item.stock <= 5);
   }
@@ -112,20 +112,20 @@ export class DashboardComponent implements OnInit {
     this.authService.logout();
   }
 
-  // ================= VARIABLES PARA LOS MODALES =================
+
   mostrarModalVehiculo = false;
   mostrarModalCita = false;
   mostrarModalEstadoCita = false;
   mostrarModalOrden = false;
 
-  // Variables exclusivas para el Perfil
+  
   mostrarModalPerfil = false;
-  editandoPerfil = false; // Controla si solo vemos o si editamos
+  editandoPerfil = false; // 
   datosPerfil: any = { 
     usuario: this.username, 
     correo: 'admin@autotaller.com', 
     password: '',
-    foto: '' // Aquí se guardará la foto subida
+    foto: '' 
   };
 
   nuevoVehiculo: any = { placa: '', marca: '', modelo: '', anio: null };
@@ -133,9 +133,9 @@ export class DashboardComponent implements OnInit {
   estadoCitaObj: any = { id: null, estado: 'PENDIENTE' };
   nuevaOrden: any = { descripcionTrabajo: '', costoTotal: null };
 
-  // ================= FUNCIONES PARA MI PERFIL =================
+
   abrirPerfil() {
-    this.editandoPerfil = false; // Siempre abre en "Modo Vista" primero
+    this.editandoPerfil = false; 
     this.mostrarModalPerfil = true;
   }
 
@@ -145,11 +145,11 @@ export class DashboardComponent implements OnInit {
   }
 
   activarEdicionPerfil() {
-    this.editandoPerfil = true; // Cambia al "Modo Edición"
+    this.editandoPerfil = true; 
   }
 
   cancelarEdicionPerfil() {
-    this.editandoPerfil = false; // Regresa al "Modo Vista" sin cerrar la ventana
+    this.editandoPerfil = false; 
   }
 
   cambiarFoto(event: any) {
@@ -157,7 +157,7 @@ export class DashboardComponent implements OnInit {
     if (file) {
       const reader = new FileReader();
       reader.onload = (e: any) => {
-        this.datosPerfil.foto = e.target.result; // Transforma la foto para poder mostrarla
+        this.datosPerfil.foto = e.target.result;
       };
       reader.readAsDataURL(file);
     }
@@ -167,11 +167,11 @@ export class DashboardComponent implements OnInit {
     if (this.datosPerfil.usuario) {
       this.username = this.datosPerfil.usuario;
     }
-    this.editandoPerfil = false; // Vuelve a la vista normal
+    this.editandoPerfil = false; 
     alert("Datos de perfil actualizados correctamente.");
   }
 
-  // ================= FUNCIONES PARA VEHÍCULOS =================
+
   abrirFormularioVehiculo() { this.mostrarModalVehiculo = true; }
   cerrarModalVehiculo() { this.mostrarModalVehiculo = false; this.nuevoVehiculo = { placa: '', marca: '', modelo: '', anio: null }; }
   guardarVehiculo() {
@@ -181,7 +181,7 @@ export class DashboardComponent implements OnInit {
     alert("Vehículo registrado correctamente.");
   }
 
-  // ================= FUNCIONES PARA CITAS =================
+
   abrirFormularioCita() { this.mostrarModalCita = true; }
   cerrarModalCita() { this.mostrarModalCita = false; this.nuevaCita = { fechaHora: '', motivo: '' }; }
   guardarCita() {
@@ -203,7 +203,6 @@ export class DashboardComponent implements OnInit {
     this.cerrarModalEstadoCita();
   }
 
-  // ================= FUNCIONES PARA ÓRDENES =================
   abrirFormularioOrden() { this.mostrarModalOrden = true; }
   cerrarModalOrden() { this.mostrarModalOrden = false; this.nuevaOrden = { descripcionTrabajo: '', costoTotal: null }; }
   guardarOrden() {
