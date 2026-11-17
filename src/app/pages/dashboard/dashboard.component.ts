@@ -37,7 +37,6 @@ export class DashboardComponent implements OnInit {
     this.tallerService.getClientes().subscribe(data => this.clientes = data || []);
   }
 
-
   get clientesFiltrados() {
     if (!this.searchQuery) return this.clientes;
     const q = this.searchQuery.toLowerCase();
@@ -87,7 +86,6 @@ export class DashboardComponent implements OnInit {
     );
   }
 
-
   get alertasInventario(): any[] {
     return this.inventarioFiltrado.filter(item => item.stock <= 5);
   }
@@ -112,15 +110,13 @@ export class DashboardComponent implements OnInit {
     this.authService.logout();
   }
 
-
   mostrarModalVehiculo = false;
   mostrarModalCita = false;
   mostrarModalEstadoCita = false;
   mostrarModalOrden = false;
 
-  
   mostrarModalPerfil = false;
-  editandoPerfil = false; // 
+  editandoPerfil = false; 
   datosPerfil: any = { 
     usuario: this.username, 
     correo: 'admin@autotaller.com', 
@@ -132,7 +128,6 @@ export class DashboardComponent implements OnInit {
   nuevaCita: any = { fechaHora: '', motivo: '' };
   estadoCitaObj: any = { id: null, estado: 'PENDIENTE' };
   nuevaOrden: any = { descripcionTrabajo: '', costoTotal: null };
-
 
   abrirPerfil() {
     this.editandoPerfil = false; 
@@ -171,7 +166,6 @@ export class DashboardComponent implements OnInit {
     alert("Datos de perfil actualizados correctamente.");
   }
 
-
   abrirFormularioVehiculo() { this.mostrarModalVehiculo = true; }
   cerrarModalVehiculo() { this.mostrarModalVehiculo = false; this.nuevoVehiculo = { placa: '', marca: '', modelo: '', anio: null }; }
   guardarVehiculo() {
@@ -180,7 +174,6 @@ export class DashboardComponent implements OnInit {
     this.cerrarModalVehiculo();
     alert("Vehículo registrado correctamente.");
   }
-
 
   abrirFormularioCita() { this.mostrarModalCita = true; }
   cerrarModalCita() { this.mostrarModalCita = false; this.nuevaCita = { fechaHora: '', motivo: '' }; }

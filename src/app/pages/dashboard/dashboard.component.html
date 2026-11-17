@@ -1,5 +1,4 @@
 <div class="layout">
-
   <aside class="sidebar">
     <div class="sidebar-header">
       <div class="logo-box"><i class="bi bi-car-front-fill"></i></div>
@@ -37,9 +36,10 @@
     </div>
   </aside>
 
-
+  <!-- CONTENIDO PRINCIPAL -->
   <main class="main-content">
-
+    
+    <!-- TOPBAR -->
     <header class="topbar">
       <div>
         <h2>{{ activeMenu | titlecase }}</h2>
@@ -47,14 +47,12 @@
       </div>
 
       <div class="topbar-actions">
-
         <div class="search-box">
           <i class="bi bi-search"></i>
           <input type="text" [(ngModel)]="searchQuery" placeholder="Buscar cliente, vehículo..." />
         </div>
 
         <button class="icon-btn"><i class="bi bi-bell"></i><span class="dot"></span></button>
-
 
         <div class="user-profile" (click)="abrirPerfil()" title="Configuración de cuenta">
           <div class="avatar" *ngIf="!datosPerfil.foto">{{ username.substring(0, 2).toUpperCase() }}</div>
@@ -343,6 +341,7 @@
 
   <!-- ================= MODALES ================= -->
   
+  <!-- PERFIL -->
   <div class="modal-overlay" *ngIf="mostrarModalPerfil">
     <div class="modal-content" style="width: 450px;">
       
@@ -498,6 +497,7 @@
     </div>
   </div>
 
+  <!-- NUEVA ORDEN -->
   <div class="modal-overlay" *ngIf="mostrarModalOrden">
     <div class="modal-content">
       <h3><i class="bi bi-plus-circle text-blue"></i> Nueva Orden</h3>
@@ -517,4 +517,5 @@
       </div>
     </div>
   </div>
+
 </div>
